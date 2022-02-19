@@ -7,8 +7,7 @@ from selenium import webdriver
 from webdriver_manager import firefox
 
 from selenium.webdriver.common.by import By
-from pages.mainpage import MainPage
-from pages.basepage import FavoritePage, LoginedPage
+from pages.basepage import FavoritePage, LoginedPage, MainPage
 
 # credentials
 # mail dytaza@mailto.plus
@@ -54,7 +53,6 @@ def driver(request):
 
 @pytest.fixture
 def logined_page(driver: driver):
-    # в предустановках будет логин + очистка старого избранного. когда-то потом.
     driver.get('https://prom.ua/Velosipednye-shiny')
     main_page = MainPage(driver)
     main_page.voiti_link.click()
@@ -64,10 +62,14 @@ def logined_page(driver: driver):
     main_page.password_field.send_keys(Credentials.login_passw)
     page = main_page.voiti_button_click()
     return page
-    # конец предустановок ================
+
+@pytest.fixture
+def main_page(driver: driver):
+    driver.get('https://prom.ua/Velosipednye-shiny')
+    return MainPage(driver)
 
 
-def t1est1(driver: driver, logined_page: logined_page):
+"""def t1est1(driver: driver, logined_page: logined_page):
     from time import sleep
     sleep(3)
     # login.list_goods_heart_button.click()
@@ -84,55 +86,45 @@ def t1est1(driver: driver, logined_page: logined_page):
 
     # assert logined_page.fav_list[0].find_element(By.XPATH, '//a[@data-qaid="product_name"]').text == 'вермишель'
 
-    # driver.get('https://prom.ua/Velosipednye-shiny')
+    # driver.get('https://prom.ua/Velosipednye-shiny')"""
 
+# параметризуем массивом индексов товаров и признаком, добавляем в избранное из списка или из товара
 
-@pytest.mark.parametrize('fav_numbers', (((1)),((1, 2, 5))))
-def test_add2fav(logined_page: logined_page, fav_numbers):
-    # fav_number_expected = 2  # количество товаров, добавляемых в избранное. Сделать с параметризацией!
-    goods_for_fav = logined_page.goods_list
-    iterator_goods = [goods_list[i] if i == in fav_numbers  for i in range(len(goods_list))]
+@pytest.mark.parametrize('fav_numbers, add_fav_from_detail',(
+                          ((0,1), 'add_from_goods_list'),
+                          ((0, 2, 5), 'add_from_goods_list'),
+                          ((2, 5), 'add_from_goods_detail'),))
+def test_add2fav(driver: driver, logined_page: logined_page, fav_numbers: tuple, add_fav_from_detail: str):
+    # goods_for_fav = logined_page.goods_list
     fav_good_names_expected = []
-    for i in range(fav_number_expected):
-        # набиваем список названий товаров, чтобы потом их искать в избранном
-        fav_good_names_expected.append(LoginedPage.good_name_text(goods_for_fav[i]))
-        # клик по сердцу - добавление в избранное
-        LoginedPage.goods_heart_button(goods_for_fav[i]).click()
+    for i in fav_numbers:
+        match  add_fav_from_detail:
+            case 'add_from_goods_list': # добавляем в избранное, проходясь по списку товаров
+                goods_for_fav = logined_page.goods_list
+                # набиваем список названий товаров, чтобы потом их искать в избранном
+                fav_good_names_expected.append(LoginedPage.good_name_text(goods_for_fav[i]))
+                # клик по сердцу - добавление в избранное
+                LoginedPage.goods_heart_button(goods_for_fav[i]).click()
+            case 'add_from_goods_detail': # добавляем в избранное, зайдя на товар
+                # проваливаемся в товар
+                goodsdetail_page = logined_page.goods_click(i)
+                # запоминаем товар
+                fav_good_names_expected.append(goodsdetail_page.good_name_text)
+                goodsdetail_page.fav_add_button.click()
+                goodsdetail_page.browser_back
+
 
     check.equal(logined_page.fav_button_counter_text,
-                str(fav_number_expected), 'Индекс количества элементов в избранном на странице с товарами')
+                str(len(fav_numbers)), 'Индекс количества элементов в избранном на странице с товарами')
     favorite_page = logined_page.fav_page_button_click()
 
-    check.equal(favorite_page.fav_button_counter_text, str(fav_number_expected),
+    check.equal(favorite_page.fav_button_counter_text, str(len(fav_numbers)),
                 'Индекс количества элементов в избранном на странице Избранное')
     assert {i.text for i in favorite_page.fav_list} == \
            {i for i in fav_good_names_expected}, \
         'Набор товаров в избранном равен набору, который добавлялся в избранное'
 
 
-def test2_add2fav_from_goods(driver: driver, logined_page: logined_page):
-    fav_number_expected = 1  # количество товаров, добавляемых в избранное. Сделать с параметризацией!
-    goods_for_fav = logined_page.goods_list
-    goodsdetail_page = logined_page.goods_click(2)
-    goodsdetail_page.fav_add_button.click()
-    driver.back()
-    goodsdetail_page = logined_page.goods_click(3)
-    goodsdetail_page.fav_add_button.click()
-
-    # fav_good_names_expected = []
-    # for i in range(fav_number_expected):
-    #     goods_for_fav[i].click()
-    #     # набиваем список названий товаров, чтобы потом их искать в избранном
-    #     # fav_good_names_expected.append(LoginedPage.good_name_text(goods_for_fav[i]))
-    #     # клик по сердцу - добавление в избранное
-    #     # LoginedPage.goods_heart_button(goods_for_fav[i]).click()
-    #
-    # check.equal(logined_page.fav_button_counter_text,
-    #             str(fav_number_expected), 'Индекс количества элементов в избранном на странице с товарами')
-    # favorite_page = logined_page.fav_page_button_click()
-    #
-    # check.equal(favorite_page.fav_button_counter_text, str(fav_number_expected),
-    #             'Индекс количества элементов в избранном на странице Избранное')
-    # assert {i.text for i in favorite_page.fav_list} == \
-    #        {i for i in fav_good_names_expected}, \
-    #     'Набор товаров в избранном равен набору, который добавлялся в избранное'
+def test_add2fav_without_login(driver: driver, main_page: main_page):
+    f = main_page.goods_list
+    assert 1 == 2

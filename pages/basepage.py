@@ -11,10 +11,10 @@ class BasePage(object):
         self.driver.implicitly_wait(5)
         self.wait = WebDriverWait(driver, 10)
 
-    # @property
-    # def browser_back(self):
-    #     self.driver.back()
-    #
+    @property
+    def browser_back(self):
+        self.driver.back()
+
 
     @property
     def voiti_link(self):
@@ -51,6 +51,11 @@ class MainPage(BasePage):
     def __init__(self, driver):
         super().__init__(driver)
 
+    @property
+    def goods_list(self):
+        # эксплисит ждет, пока не появится список товаров
+        return self.wait.until(EC.visibility_of_any_elements_located((By.XPATH, '//div[@data-qaid="product_block"]')))
+
 
 class LoginedPage(MainPage):
     # страница, когда залогинены
@@ -69,10 +74,7 @@ class LoginedPage(MainPage):
         self.fav_page_button.click()
         return FavoritePage(self.driver)
 
-    @property
-    def goods_list(self):
-        # эксплисит ждет, пока не появится список товаров
-        return self.wait.until(EC.visibility_of_any_elements_located((By.XPATH, '//div[@data-qaid="product_block"]')))
+
 
     def goods_click(self,i):
         self.goods_list[i].click()
@@ -133,3 +135,13 @@ class GoodsDetail(BasePage):
     def fav_add_button(self):
         return self.driver.find_element(By.XPATH,
                                          '//span[@data-qaid="add_favorite"]')
+
+    @property
+    def good_code_text(self):
+        return self.driver.find_element(By.XPATH,
+                                         '//span[@data-qaid="product-sku"]').text
+
+    @property
+    def good_name_text(self):
+        return self.driver.find_element(By.XPATH,
+                                        '//h1[@data-qaid="product_name"]').text
