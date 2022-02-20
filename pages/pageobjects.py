@@ -1,3 +1,5 @@
+# не смог одолеть проблему циклического импорта, потому все пейжобжекты поместил в один файл
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from test_data.credentials import Credentials
@@ -15,9 +17,12 @@ class BasePage(object):
     def browser_back_button_click(self):
         self.driver.back()
 
+    @staticmethod
+    def goods_heart_button(web_item):
+        return web_item.find_element(By.XPATH, './/span[@data-qaid="add_favorite"]')
 
     @property
-    def voiti_link(self):
+    def comein_link(self):
         return self.driver.find_element(By.XPATH, '//button[@data-qaid="sign-in"]')
 
     @property
@@ -42,8 +47,9 @@ class BasePage(object):
 
     def comein_button_click(self):
         self.comein_button.click()
-        return LoginedPage(self.driver)
 
+    def go_logined_page(self):
+        return LoginedPage(self.driver)
 
 class MainPage(BasePage):
     # основная страница до логина
@@ -56,14 +62,16 @@ class MainPage(BasePage):
         return self.wait.until(EC.visibility_of_any_elements_located((By.XPATH, '//div[@data-qaid="product_block"]')))
 
 
+
+    # def goods_click(self,i):
+    #     self.goods_list[i].click()
+
+
 class LoginedPage(MainPage):
     # страница, когда залогинены
     def __init__(self, driver):
         super().__init__(driver)
 
-    @property
-    def dummy_button(self):
-        return self.driver.find_element(By.XPATH, '//a[@data-qaid="create_company_banner"]')
 
     @property
     def fav_page_button(self):
