@@ -11,8 +11,8 @@ class BasePage(object):
         self.driver.implicitly_wait(5)
         self.wait = WebDriverWait(driver, 10)
 
-    @property
-    def browser_back(self):
+
+    def browser_back_button_click(self):
         self.driver.back()
 
 
@@ -23,26 +23,25 @@ class BasePage(object):
     @property
     def email_button(self):
         return self.wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@data-qaid="email_btn"]')))
-        # return self.driver.find_element(By.XPATH, '//div[@data-qaid="email_btn"]')
 
     @property
     def email_field(self):
         return self.driver.find_element(By.XPATH, '//input[@id="email_field"]')
 
     @property
-    def dalee_button(self):
-        return self.driver.find_element(By.XPATH, '//button[@id="emailConfirmButton"]').click()
+    def next_button(self):
+        return self.driver.find_element(By.XPATH, '//button[@id="emailConfirmButton"]')
 
     @property
     def password_field(self):
         return self.driver.find_element(By.XPATH, '//input[@id="enterPassword"]')
 
     @property
-    def voiti_button(self):
+    def comein_button(self):
         return self.driver.find_element(By.XPATH, '//button[@id="enterPasswordConfirmButton"]')
 
-    def voiti_button_click(self):
-        self.voiti_button.click()
+    def comein_button_click(self):
+        self.comein_button.click()
         return LoginedPage(self.driver)
 
 
