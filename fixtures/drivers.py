@@ -3,7 +3,7 @@ from time import sleep
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium import webdriver
 import test_data.endpoints
-from pages.basepage import FavoritePage
+from pages.pageobjects import FavoritePage
 
 @pytest.fixture
 def driver(request):
