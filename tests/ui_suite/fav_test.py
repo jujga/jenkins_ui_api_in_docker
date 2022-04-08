@@ -1,25 +1,26 @@
 import pytest
 import pytest_check as check
-from pages.pageobjects import LoginedPage, MainPage
-import common
+from tests.pages.pageobjects import LoginedPage
+import tests.common as common
 
 """параметризуем массивом индексов товаров и признаком,
 добавляем в избранное из списка или из товара"""
 
 
+@pytest.mark.ui
 @pytest.mark.parametrize('fav_numbers, add_fav_from_detail', (
         ((0, 1), 'add_from_goods_list'),
         ((0, 2, 4), 'add_from_goods_list'),
         ((2, 5), 'add_from_goods_detail')))
-def test1_add2fav(logined_page, fav_numbers: tuple, add_fav_from_detail: str):
+def test_add2fav(logined_page, fav_numbers: tuple, add_fav_from_detail: str):
     goods_for_fav = logined_page.goods_list
-    fav_good_names_expected = []
+    fav_goods_names_expected = []
     for goods_index in fav_numbers:
         match add_fav_from_detail:
             case 'add_from_goods_list':
                 # goods_for_fav = logined_page.goods_list
                 # набиваем список названий товаров,потом их искать в избранном
-                fav_good_names_expected.append(
+                fav_goods_names_expected.append(
                     LoginedPage.good_name_text(goods_for_fav[goods_index]))
                 # клик по сердцу - добавление в избранное
                 LoginedPage.goods_heart_button(
@@ -28,7 +29,7 @@ def test1_add2fav(logined_page, fav_numbers: tuple, add_fav_from_detail: str):
                 # проваливаемся в товар
                 goodsdetail_page = logined_page.goods_click(goods_index)
                 # запоминаем товар
-                fav_good_names_expected.append(goodsdetail_page.good_name_txt)
+                fav_goods_names_expected.append(goodsdetail_page.good_name_txt)
                 goodsdetail_page.fav_add_button.click()
                 goodsdetail_page.browser_back_button_click()
 
@@ -40,14 +41,12 @@ def test1_add2fav(logined_page, fav_numbers: tuple, add_fav_from_detail: str):
 
     check.equal(favorite_page.fav_button_counter_text, str(len(fav_numbers)),
                 'Количество элементов в избранном на странице Избранное')
-    assert {i.text for i in favorite_page.fav_list} == \
-           {i for i in fav_good_names_expected}, \
-           'Набор товаров в избранном равен набору,' \
-           'который добавлялся в избранное'
+    assert_goodsnames_in_fav(favorite_page.fav_list, fav_goods_names_expected)
 
 
 # добавляется один товар в избранное без предварительного логина
-def test2_add2fav_out_of_login(main_page):
+@pytest.mark.ui
+def test_add2fav_out_of_login(main_page):
     # запоминаем товар, что добавляется в избранное
     fav_goods_names_expected = \
         {(LoginedPage.good_name_text(main_page.goods_list[1]))}
@@ -60,13 +59,12 @@ def test2_add2fav_out_of_login(main_page):
     favorite_page = logined_page.fav_page_button_click()
     check.equal(favorite_page.fav_button_counter_text, '1',
                 'Количество на странице Избранное')
-    assert {i.text for i in favorite_page.fav_list} == \
-           {i for i in fav_goods_names_expected}, \
-           'Названия товаров в избранном'
+    assert_goodsnames_in_fav(favorite_page.fav_list, fav_goods_names_expected)
 
 
 # добавляется с индексом 1 и 2, с индексом 1 убирается
-def test3_add2fav_1_2_1(logined_page):
+@pytest.mark.ui
+def test_add2fav_1_2_1(logined_page):
     goods_for_fav = logined_page.goods_list
     LoginedPage.goods_heart_button(
         goods_for_fav[1]).click()
@@ -81,6 +79,12 @@ def test3_add2fav_1_2_1(logined_page):
     favorite_page = logined_page.fav_page_button_click()
     check.equal(favorite_page.fav_button_counter_text, '1',
                 'Количество на странице Избранное')
-    assert {i.text for i in favorite_page.fav_list} == \
-           {i for i in fav_goods_names_expected}, \
-           'Названия товаров в избранном'
+    assert_goodsnames_in_fav(favorite_page.fav_list, fav_goods_names_expected)
+
+
+# HELPERS
+def assert_goodsnames_in_fav(actual_fav_goods_set, expected_fav_goods_set):
+    assert {i.text for i in actual_fav_goods_set} == \
+           {i for i in expected_fav_goods_set}, \
+           'Набор товаров в избранном равен набору,' \
+           'который добавлялся в избранное'
