@@ -1,7 +1,11 @@
+import allure
 import pytest
 import requests
 import json
 from tests.test_data.endpoints import gorest_users_url
+from tests.test_data.rest_data import Users
+from tests.helpers import get_url_userid
+from tests.test_data.rest_data import Config
 
 
 class RequestComponents:
@@ -13,6 +17,7 @@ class RequestComponents:
 
 
 @pytest.mark.rest
+@allure.title('Creating user. Used method POST')
 def test_create_user():
 
     payload = json.dumps({
@@ -24,35 +29,40 @@ def test_create_user():
 
     response = requests.request(
         'POST', gorest_users_url, headers=RequestComponents.headers, data=payload)
+    Config.logger.info(f'response code - {response.status_code}')
+    Config.logger.info(f'response body - {response.json()}')
+
     assert response.status_code == 201
     actual_response = response.json().copy()
-    users_id_2_del = actual_response.pop('id')  # get id for delete in the pseudo teardown
+    Users.users.append(actual_response.pop('id'))  # get id for delete for teardown
     assert actual_response == \
            {"name": "User for test1",
             "email": "user_for_test1@15ce.com",
             "gender": "male",
             "status": "active"}
-    # как нибудь потом набить коллекцию id записей в глобальную классовую переменную и удалить в тирдауне к сессии
-    requests.delete(get_url_userid(gorest_users_url, users_id_2_del), headers=RequestComponents.headers)
 
 
+@allure.title('Getting user info. Used method GET')
 @pytest.mark.rest
 def test_get_user():
-    user_id = 5354
+    user_id = Users.users[0]
     response = requests.request(
         "GET", get_url_userid(gorest_users_url, user_id), headers=RequestComponents.headers)
+    Config.logger.info(f'response code - {response.status_code}')
+    Config.logger.info(f'response body - {response.json()}')
     assert response.status_code == 200
     assert response.json() == \
            {"id": user_id,
-            "name": "jujga1",
-            "email": "jujga1@15ce.com",
+            "name": "User for test_get_user",
             "gender": "male",
+            "email": "user_for_test_get_user@15ce.com",
             "status": "active"}
 
 
+@allure.title('Updating user. Used method PATCH')
 @pytest.mark.rest
 def test_update_user():
-    user_id = 5345
+    user_id = Users.users[1]
     payload = json.dumps({
         "name": "Changed Name",
         "email": "changed_mail@15ce.com",
@@ -60,6 +70,8 @@ def test_update_user():
     })
     response = requests.request(
         'PATCH', get_url_userid(gorest_users_url, user_id), headers=RequestComponents.headers, data=payload)
+    Config.logger.info(f'response code - {response.status_code}')
+    Config.logger.info(f'response body - {response.json()}')
     assert response.status_code == 200
     assert response.json() == \
            {"id": user_id,
@@ -67,8 +79,3 @@ def test_update_user():
             "email": "changed_mail@15ce.com",
             "gender": "female",
             "status": "inactive"}
-
-
-# HELPERS
-def get_url_userid(baseurl, user_id):
-    return f'{baseurl}/{user_id}'

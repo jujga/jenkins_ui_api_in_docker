@@ -1,0 +1,2 @@
+class DriverForAllure:
+    driver = None
