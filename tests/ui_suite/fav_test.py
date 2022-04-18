@@ -42,7 +42,7 @@ def test_add2fav_out_of_login(main_page):
     goods_index = 1
     fav_goods_names_expected = \
         {(MainPage.good_name_text(main_page.goods_list[goods_index]))}
-    MainPage.click_goods_heart_button(main_page.goods_list, goods_index)
+    main_page.click_goods_heart_button(main_page.goods_list, goods_index)
     common.login_steps(main_page)
     logined_page = main_page.go_logined_page()
     check.equal(logined_page.fav_button_counter_text, '1',
@@ -54,24 +54,20 @@ def test_add2fav_out_of_login(main_page):
 
 
 @pytest.mark.ui
-@pytest.mark.parametrize('sequence_of_goods_heart_clicking', ((1, 2, 1), (0, 0, 2, 2, 3)))
+@pytest.mark.parametrize('sequence_of_goods_heart_clicking', ((1, 2, 1), (1, 1, 2, 2, 3)))
 def test_add2fav_and_remove(logined_page, sequence_of_goods_heart_clicking: tuple):
     # expected_goods_indices_dict: keys - goods's index in the page, value - flag means resulting adding to the favs
     # True value - There is odd clicks on the goods according to the given sequence.
     # It means goods will be added to the favorites in sum.
     # False value - There are even clicks.
     # It means goods won't be added to the favorites
-    expected_goods_indices_dict = dict()
-    for i in sequence_of_goods_heart_clicking:
-        if i not in expected_goods_indices_dict:  # first definition is True
-            expected_goods_indices_dict[i] = True
-        else:  # inverting of flag when key occurs in the sequence_of_goods_heart_clicking one more time
-            expected_goods_indices_dict[i] = not (expected_goods_indices_dict[i])
-    expected_goods_indices = set(filter(lambda x: expected_goods_indices_dict[x], expected_goods_indices_dict))
+
+    expected_goods_indices = \
+        [i for i in set(sequence_of_goods_heart_clicking) if sequence_of_goods_heart_clicking.count(i)%2 != 0]
     goods_for_fav = logined_page.goods_list
     fav_goods_names_expected = {LoginedPage.good_name_text(goods_for_fav[i]) for i in expected_goods_indices}
     for goods_index in sequence_of_goods_heart_clicking:
-        LoginedPage.click_goods_heart_button(goods_for_fav, goods_index)
+        logined_page.click_goods_heart_button(goods_for_fav, goods_index)
     favorite_page = logined_page.click_fav_page_button()
     check.equal(favorite_page.fav_button_counter_text, f'{len(expected_goods_indices)}',
                 'Количество на странице Избранное')
