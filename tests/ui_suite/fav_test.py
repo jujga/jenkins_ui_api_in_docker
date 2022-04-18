@@ -5,12 +5,16 @@ from tests.pages.pageobjects import LoginedPage, MainPage
 import tests.common as common
 
 
+def idfn_x(val):
+    return "Goods indices: {0} ".format(str(val)) if type(val) == tuple else " adding option: {0}".format(str(val))
+
+
 @allure.title('Adding some goods to favorites when user is logined')
 @pytest.mark.ui
 @pytest.mark.parametrize('fav_numbers, add_fav_from_detail', (
         ((0, 1), 'add_from_goods_list'),
         ((0, 2, 4), 'add_from_goods_list'),
-        ((2, 5), 'add_from_goods_detail')))
+        ((2, 5), 'add_from_goods_detail')), ids=idfn_x)
 def test_add2fav(logined_page, fav_numbers: tuple, add_fav_from_detail: str):
     goods_for_fav = logined_page.goods_list
     fav_goods_names_expected = []
@@ -19,7 +23,7 @@ def test_add2fav(logined_page, fav_numbers: tuple, add_fav_from_detail: str):
             case 'add_from_goods_list':
                 fav_goods_names_expected.append(
                     LoginedPage.good_name_text(goods_for_fav[goods_index]))
-                LoginedPage.click_goods_heart_button(goods_for_fav, goods_index)
+                logined_page.click_goods_heart_button(goods_for_fav, goods_index)
             case 'add_from_goods_detail':  # test adds goods to favorites from goods detail page
                 goodsdetail_page = logined_page.click_on_goods(goods_index)
                 fav_goods_names_expected.append(goodsdetail_page.good_name_txt)
@@ -42,7 +46,7 @@ def test_add2fav_out_of_login(main_page):
     goods_index = 1
     fav_goods_names_expected = \
         {(MainPage.good_name_text(main_page.goods_list[goods_index]))}
-    main_page.click_goods_heart_button(main_page.goods_list, goods_index)
+    MainPage.click_goods_heart_button(main_page.goods_list, goods_index)
     common.login_steps(main_page)
     logined_page = main_page.go_logined_page()
     check.equal(logined_page.fav_button_counter_text, '1',
@@ -61,9 +65,8 @@ def test_add2fav_and_remove(logined_page, sequence_of_goods_heart_clicking: tupl
     # It means goods will be added to the favorites in sum.
     # False value - There are even clicks.
     # It means goods won't be added to the favorites
-
     expected_goods_indices = \
-        [i for i in set(sequence_of_goods_heart_clicking) if sequence_of_goods_heart_clicking.count(i)%2 != 0]
+        [i for i in set(sequence_of_goods_heart_clicking) if sequence_of_goods_heart_clicking.count(i) % 2 != 0]
     goods_for_fav = logined_page.goods_list
     fav_goods_names_expected = {LoginedPage.good_name_text(goods_for_fav[i]) for i in expected_goods_indices}
     for goods_index in sequence_of_goods_heart_clicking:
