@@ -5,6 +5,7 @@ from tests.pages.pageobjects import LoginedPage, MainPage
 import tests.common as common
 from tests.pages.pageobjects import do_allure_screenshot
 
+
 def idfn_x(val):
     return "Goods indices: {0} ".format(str(val)) if type(val) == tuple else " adding option: {0}".format(str(val))
 
@@ -13,7 +14,7 @@ def idfn_x(val):
 @pytest.mark.ui
 @pytest.mark.parametrize('fav_numbers, add_fav_from_detail', (
         ((0, 1), 'add_from_goods_list'),
-        ((0, 2, 4), 'add_from_goods_list'),
+        ((0, 2, 3), 'add_from_goods_list'),
         ((2, 5), 'add_from_goods_detail')), ids=idfn_x)
 def test_add2fav(logined_page, fav_numbers: tuple, add_fav_from_detail: str):
     goods_for_fav = logined_page.goods_list
@@ -78,9 +79,11 @@ def assert_goodsnames_in_fav(actual_fav_goods_set, expected_fav_goods_set):
         'Set of goods have added is not equal to goods in the favorites list'
     do_allure_screenshot(f'Goods in the favorites list')
 
+
 def assert_index_goods_list(actual, expected):
     check.equal(actual, expected,
                 'Goods list page. Index on the heart icon is not equal to number of goods was added to favorites')
+
 
 def assert_index_favorites(actual, expected):
     check.equal(actual, expected,

@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from tests.utilities.utils import DriverForAllure
+from tests.utilities import utils
 import allure
 import datetime
 
@@ -110,6 +111,8 @@ class LoginedPage(MainPage):
 
     @allure.step('Clicking on a heart button on the goods with index {2}')
     def click_goods_heart_button(self, web_item_list, goods_index):
+        time_to_press_heart_button = 5
+
         def is_heart_picked():
             heart_button = operable_goods.find_element(By.XPATH, './/span[@data-qaid="add_favorite"]')
             heart_dom_attrs = heart_button.get_dom_attribute('data-tg-clicked')
@@ -118,34 +121,12 @@ class LoginedPage(MainPage):
         def is_heart_state_changed(is_prev_heart_state):
             """Do REST POST request to make sure goods is added/removed to the favorites"""
             import requests
-            import json
             url = "https://my.prom.ua/cabinet/user/graphql"
-            payload = json.dumps([
-                {
-                    "operationName": "FavoriteListQuery",
-                    "variables": {
-                        "page": 1,
-                        "perPage": 20,
-                        "searchTerm": "",
-                        "categoryId": None,
-                        "companyId": None,
-                        "isFresh": True
-                    },
-                    "query": "query FavoriteListQuery($perPage: Int!, $page: Int!, $searchTerm: String!, $categoryId: Int, $companyId: Int, $saleFilter: Boolean, $availFilter: Boolean, $isFresh: Boolean) {\n  favoriteList(\n    perPage: $perPage\n    page: $page\n    search: $searchTerm\n    categoryId: $categoryId\n    companyId: $companyId\n    saleFilter: $saleFilter\n    availFilter: $availFilter\n    isFresh: $isFresh\n  ) {\n    heartedProducts {\n      id\n      name\n      status\n      presence\n      sign\n      price\n      priceWithDiscount\n      ecProductPrices\n      isPresenceSure\n      groupId\n      productTypeKey\n      categoryId\n      categoryIds\n      currencyText\n      imageUrl(width: 1400, height: 1400)\n      sku\n      wholesalePrices {\n        price\n        priceCurrencyLocalized\n        minimumOrderQuantity\n        measureUnit\n        __typename\n      }\n      company {\n        id\n        name\n        isContentHidden\n        siteDisabled\n        reviewsCount\n        positiveReviewsPercent\n        opinionsCount\n        catalogUrl\n        siteUrl\n        catalogOpinionList\n        isCertified\n        isPortalChatVisible\n        isShoppingCartEnabled\n        city\n        frameMapUrl\n        address {\n          region_id\n          __typename\n        }\n        branches {\n          id\n          name\n          companyId\n          phone\n          mapUrl\n          address {\n            region_id\n            city\n            zipCode\n            street\n            regionText\n            country {\n              name\n              __typename\n            }\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      labels {\n        isNovaPoshtaAvailable\n        isNovaPoshtaWithPromShipping\n        isJustinWithPromShipping\n        isEvoPayEnabled\n        isSuccessfulPurchase\n        isPromShippingEnabled\n        __typename\n      }\n      supplyPeriod\n      isPriceFrom\n      residueStatus\n      residueColorStatus\n      __typename\n    }\n    allCategories {\n      id\n      caption\n      alias\n      __typename\n    }\n    allCompanies {\n      id\n      name\n      __typename\n    }\n    productCount\n    pagesCount\n    saleFiltAvail\n    availFiltAvail\n    isDefCurrencyOnly\n    __typename\n  }\n}\n"
-                },
-                {
-                    "operationName": "besidaQuery",
-                    "variables": {},
-                    "query": "query besidaQuery {\n  besida {\n    cdn_url\n    desktop_v\n    mobile_v\n    is_besida_enabled\n    __typename\n  }\n}\n"
-                }
-            ])
-
             headers = {
                 'Cookie': '; '.join([cookie['name'] + '=' + cookie['value'] for cookie in self.driver.get_cookies()]),
                 'x-requested-with': 'XMLHttpRequest',
-                'Content-Type': 'application/json'
-            }
-            response = requests.request("POST", url, headers=headers, data=payload)
+                'Content-Type': 'application/json'}
+            response = requests.request("POST", url, headers=headers, data=utils.payload)
             is_in_fav = True if BasePage.good_name_text(operable_goods) in response.text else False
             return is_in_fav ^ is_prev_heart_state
 
@@ -154,11 +135,10 @@ class LoginedPage(MainPage):
         click_time = datetime.datetime.now().timestamp()
         operable_goods.find_element(By.XPATH, './/span[@data-qaid="add_favorite"]').click()
         while not is_heart_state_changed(is_heart_picked_prev):
-            if datetime.datetime.now().timestamp() - click_time > 1:
-                # done 1s for operation of adding/removing one goods to/from the favorite list
-                # if didnt raises assert exception and stops the test
-                assert False, 'Global problem about adding/removing goods to/from favorites.' \
-                              'Please check internet connection or accessibility of site'
+            if datetime.datetime.now().timestamp() - click_time > time_to_press_heart_button:
+                do_allure_screenshot(f'Time out ({time_to_press_heart_button}s) after clicking on the heart button')
+                raise ConnectionError('Global problem about adding/removing goods to/from favorites.'
+                                      'Please check internet connection or accessibility of site')
         do_allure_screenshot(f'After clicking on the {goods_index}-th goods/s heart button')
 
 
