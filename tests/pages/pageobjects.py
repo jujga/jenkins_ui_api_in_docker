@@ -5,7 +5,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from tests.utilities.utils import DriverForAllure
+from tests.utilities import utils
 import allure
+import datetime
 
 
 class BasePage(object):
@@ -19,12 +21,6 @@ class BasePage(object):
     def click_browser_back_button(self):
         self.driver.back()
         do_allure_screenshot(f'Previous page')
-
-    @staticmethod
-    @allure.step('Clicking on a heart button on the goods with index {1}')
-    def click_goods_heart_button(web_item_list, goods_index):
-        web_item_list[goods_index].find_element(By.XPATH, './/span[@data-qaid="add_favorite"]').click()
-        do_allure_screenshot(f'After clicking on the {goods_index}-th goods/s heart button')
 
     @staticmethod
     def good_name_text(web_item):
@@ -67,6 +63,12 @@ class BasePage(object):
     def go_logined_page(self):
         return LoginedPage(self.driver)
 
+    @staticmethod
+    @allure.step('Clicking on a heart button on the goods with index {1}')
+    def click_goods_heart_button(web_item_list, goods_index):
+        web_item_list[goods_index].find_element(By.XPATH, './/span[@data-qaid="add_favorite"]').click()
+        do_allure_screenshot(f'After clicking on the {goods_index}-th goods/s heart button')
+
 
 class MainPage(BasePage):
     # основная страница до логина
@@ -78,9 +80,6 @@ class MainPage(BasePage):
         # эксплисит ждет, пока не появится список товаров
         return self.wait.until(EC.visibility_of_any_elements_located(
             (By.XPATH, '//div[@data-qaid="product_block"]')))
-
-    # def goods_click(self,i):
-    #     self.goods_list[i].click()
 
 
 class LoginedPage(MainPage):
@@ -109,6 +108,38 @@ class LoginedPage(MainPage):
     def fav_button_counter_text(self):
         return self.driver.find_element(By.XPATH,
                                         '//div[@data-qaid="counter"]').text
+
+    @allure.step('Clicking on a heart button on the goods with index {2}')
+    def click_goods_heart_button(self, web_item_list, goods_index):
+        time_to_press_heart_button = 5
+
+        def is_heart_picked():
+            heart_button = operable_goods.find_element(By.XPATH, './/span[@data-qaid="add_favorite"]')
+            heart_dom_attrs = heart_button.get_dom_attribute('data-tg-clicked')
+            return False if ':"off",' in heart_dom_attrs else True
+
+        def is_heart_state_changed(is_prev_heart_state):
+            """Do REST POST request to make sure goods is added/removed to the favorites"""
+            import requests
+            url = "https://my.prom.ua/cabinet/user/graphql"
+            headers = {
+                'Cookie': '; '.join([cookie['name'] + '=' + cookie['value'] for cookie in self.driver.get_cookies()]),
+                'x-requested-with': 'XMLHttpRequest',
+                'Content-Type': 'application/json'}
+            response = requests.request("POST", url, headers=headers, data=utils.payload)
+            is_in_fav = True if BasePage.good_name_text(operable_goods) in response.text else False
+            return is_in_fav ^ is_prev_heart_state
+
+        operable_goods = web_item_list[goods_index]
+        is_heart_picked_prev = is_heart_picked()
+        click_time = datetime.datetime.now().timestamp()
+        operable_goods.find_element(By.XPATH, './/span[@data-qaid="add_favorite"]').click()
+        while not is_heart_state_changed(is_heart_picked_prev):
+            if datetime.datetime.now().timestamp() - click_time > time_to_press_heart_button:
+                do_allure_screenshot(f'Time out ({time_to_press_heart_button}s) after clicking on the heart button')
+                raise ConnectionError('Global problem about adding/removing goods to/from favorites.'
+                                      'Please check internet connection or accessibility of site')
+        do_allure_screenshot(f'After clicking on the {goods_index}-th goods/s heart button')
 
 
 class FavoritePage(BasePage):
