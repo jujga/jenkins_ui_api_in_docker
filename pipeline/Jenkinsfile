@@ -4,11 +4,18 @@ pipeline {
     stages {
         stage('Run API tests using docker') {
             steps {
-                echo 'There will be UI tests run'
                 checkout([$class: 'GitSCM', branches: [[name: 'inside_of_docker_container']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/jujga/TestTaskEvo']]])
                 bat 'docker build -t pytest_runner .'
                 bat 'docker run --rm --mount type=bind,src=' + pwd() + ',target=/tests_project/ pytest_runner'
                 //bat(readFile("D:/cmds/do_image_python.cmd"))
+
+                }
+            }
+        stage('Run UI tests using docker') {
+            steps {
+                //checkout([$class: 'GitSCM', branches: [[name: 'inside_of_docker_container']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/jujga/TestTaskEvo']]])
+                bat 'docker run -d -p 4444:4444 --shm-size=2g selenium/standalone-chrome:3.141.59-20210607'
+                bat 'pytest -m ui --alluredir ./test_results --start_from_jenkins=True'
 
                 }
             }
