@@ -14,7 +14,7 @@ pipeline {
                         bat 'docker build -f ./pipeline/containers/pseudo_compose/python_runner/Dockerfile -t python_runner .'
                         //run container with runner
                         bat 'docker run --rm --mount type=bind,src=' + pwd() + ',target=/tests_project/ python_runner'
-                        //bat 'pytest -m ui tests/ui_suite --alluredir ./test_results --start_from_jenkins=True '
+
                         }
                     }
                 stage('API tests in the python container') {
@@ -22,7 +22,6 @@ pipeline {
                         //checkout([$class: 'GitSCM', branches: [[name: 'inside_of_docker_container']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/jujga/TestTaskEvo']]])
                         bat 'docker build -f ./pipeline/containers/python_api/Dockerfile -t pytest_runner .'
                         bat 'docker run --rm --mount type=bind,src=' + pwd() + ',target=/tests_project/ pytest_runner'
-                        //bat(readFile("D:/cmds/do_image_python.cmd"))
 
                         }
                     }
@@ -48,22 +47,3 @@ pipeline {
             }
         }
 }
-    // stage('Run REST tests') {
-        //     steps {
-        //         bat(readFile("C:/Users/jujga/PycharmProjects/TestTaskEvo/run_rest_test.bat"))
-        //     }
-        // }
-
-        // stage('reports') {
-        //     steps {
-        //         script {
-        //                 allure([
-        //                         //allure commandline: 'allure',
-        //                         includeProperties: false,
-        //                         jdk: '',
-        //                         results: [[path: 'test_results']]
-        //                 ])
-        //             }
-        //         }
-        //     }
-
