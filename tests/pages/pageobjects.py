@@ -134,11 +134,11 @@ class LoginedPage(MainPage):
         is_heart_picked_prev = is_heart_picked()
         click_time = datetime.datetime.now().timestamp()
         operable_goods.find_element(By.XPATH, './/span[@data-qaid="add_favorite"]').click()
-        while not is_heart_state_changed(is_heart_picked_prev):
-            if datetime.datetime.now().timestamp() - click_time > time_to_press_heart_button:
-                do_allure_screenshot(f'Time out ({time_to_press_heart_button}s) after clicking on the heart button')
-                raise ConnectionError('Global problem about adding/removing goods to/from favorites.'
-                                      'Please check internet connection or accessibility of site')
+        # while not is_heart_state_changed(is_heart_picked_prev):
+        #     if datetime.datetime.now().timestamp() - click_time > time_to_press_heart_button:
+        #         do_allure_screenshot(f'Time out ({time_to_press_heart_button}s) after clicking on the heart button')
+        #         raise ConnectionError('Global problem about adding/removing goods to/from favorites.'
+        #                               'Please check internet connection or accessibility of site')
         do_allure_screenshot(f'After clicking on the {goods_index}-th goods/s heart button')
 
 
