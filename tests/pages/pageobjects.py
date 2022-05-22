@@ -111,7 +111,7 @@ class LoginedPage(MainPage):
 
     @allure.step('Clicking on a heart button on the goods with index {2}')
     def click_goods_heart_button(self, web_item_list, goods_index):
-        time_to_press_heart_button = 5
+        time_to_press_heart_button = 20
 
         def is_heart_picked():
             heart_button = operable_goods.find_element(By.XPATH, './/span[@data-qaid="add_favorite"]')
