@@ -6,8 +6,8 @@ pipeline {
         stage('Run UI tests using docker') {
             steps {
                 checkout([$class: 'GitSCM', branches: [[name: 'inside_of_docker_container']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/jujga/TestTaskEvo']]])
-                bat 'docker run -d -p 4444:4444 --shm-size=2g selenium/standalone-chrome:3.141.59-20210607'
-                bat 'pytest -m ui --alluredir ./test_results --start_from_jenkins=True'
+                bat 'docker run --name ui_tests -d -p 4444:4444 --shm-size=2g selenium/standalone-chrome:3.141.59-20210607'
+                bat 'pytest -m ui tests/ui_suite --alluredir ./test_results --start_from_jenkins=True '
 
                 }
             }
@@ -15,7 +15,7 @@ pipeline {
         stage('Run API tests using docker') {
             steps {
                 //checkout([$class: 'GitSCM', branches: [[name: 'inside_of_docker_container']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/jujga/TestTaskEvo']]])
-                bat 'docker build -t pytest_runner .'
+                bat 'build -f ./pipeline/containers/python_api/Dockerfile -t pytest_runner .'
                 bat 'docker run --rm --mount type=bind,src=' + pwd() + ',target=/tests_project/ pytest_runner'
                 //bat(readFile("D:/cmds/do_image_python.cmd"))
 
@@ -27,6 +27,7 @@ pipeline {
 
     post {
         always {
+
             script {
                         allure([
                                 //allure commandline: 'allure',
@@ -35,7 +36,10 @@ pipeline {
                                 results: [[path: 'test_results']]
                         ])
                     }
-                }
+            bat 'docker stop ui_tests'
+            bat 'docker rm ui_tests'
+
+            }
         }
 }
     // stage('Run REST tests') {
