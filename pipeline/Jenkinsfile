@@ -7,7 +7,7 @@ pipeline {
             parallel {
                 stage ('UI tests on the chrome in the linux container') {
                     steps {
-                        checkout([$class: 'GitSCM', branches: [[name: 'inside_of_docker_container']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/jujga/TestTaskEvo']]])
+                        checkout([$class: 'GitSCM', branches: [[name: 'master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/jujga/TestTaskEvo']]])
                         //run linux with chrome server
                         bat 'docker run --name ui_tests -d -p 4444:4444 --shm-size=2g selenium/standalone-chrome:3.141.59-20210607'
                         //build container for runner
