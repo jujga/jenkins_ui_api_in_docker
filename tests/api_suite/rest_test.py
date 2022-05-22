@@ -72,7 +72,7 @@ def test_update_user():
         'PATCH', get_url_userid(gorest_users_url, user_id), headers=RequestComponents.headers, data=payload)
     Config.logger.info(f'response code - {response.status_code}')
     Config.logger.info(f'response body - {response.json()}')
-    assert response.status_code == 201
+    assert response.status_code == 200
     assert response.json() == \
            {"id": user_id,
             "name": "Changed Name",
