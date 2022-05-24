@@ -15,7 +15,7 @@ from tests.common import do_allure_screenshot
 def driver(request):
     options = webdriver.ChromeOptions()
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
-    driver = webdriver.Remote(command_executor='http://192.168.0.114:4444/wd/hub', options=options) \
+    driver = webdriver.Remote(command_executor='http://linux_chrome:4444/wd/hub', options=options) \
         if request.config.getoption('--start_from_jenkins')\
         else webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     DriverForAllure.driver = driver

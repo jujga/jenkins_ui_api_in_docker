@@ -13,10 +13,18 @@ services:
   # Понятное название сервиса помогает определить его роль.
   # Здесь мы, для именования соответствующего сервиса, используем ключевое слово 'server'.
 
+
   py_runner:
     build: ./python_runner
     depends_on:
       - linux_chrome
+
+    volumes:
+      - type: bind
+        source: ./../../../ # moves up to the root project dir
+        target: /tests_project/
+
+
     #command: python -m pytest -m ui tests/ui_suite --alluredir=test_results/ -s /tests_project --start_from_jenkins=True
 
     # Ключевое слово "build" позволяет задать
@@ -49,10 +57,13 @@ services:
   linux_chrome:
     # Здесь 'client/ соответствует пути к папке, которая содержит
     # файл Dockerfile для клиентской части системы.
-
-    build: ./linux_chrome
-    # ports:
-    #       - 1234:1234
+    image: selenium/standalone-chrome:3.141.59-20210607
+    #100.0-chromedriver-100.0-20220405
+    #mem_reservation: 2g
+    shm_size: '2gb'
+    # build: ./linux_chrome
+    ports:
+           - 4444:4444
     # Команда, которую нужно запустить после создания образа.
     # Следующая команда означает запуск "python ./client.py".
 
@@ -61,7 +72,7 @@ services:
     # Ключевое слово 'network_mode' используется для описания типа сети.
     # Тут мы указываем то, что контейнер может обращаться к 'localhost' компьютера.
 
-    network_mode: host
+
 
     # Ключевое слово 'depends_on' позволяет указывать, должен ли сервис,
     # прежде чем запуститься, ждать, когда будут готовы к работе другие сервисы.

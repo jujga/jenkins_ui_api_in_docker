@@ -1,1 +1,3 @@
-FROM selenium/standalone-chrome:3.141.59-20210607
+FROM selenium/standalone-chrome:100.0-chromedriver-100.0-20220405
+
+
