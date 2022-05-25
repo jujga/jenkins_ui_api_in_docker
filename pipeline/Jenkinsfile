@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        WORKSPACE = (pwd)+"${env.BUILD_NUMBER}"
+        WORKSPACE = WORKSPACE+"${env.BUILD_NUMBER}"
     }
     stages {
         stage ('Preparing workspace for build') {
