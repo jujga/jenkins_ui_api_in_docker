@@ -1,13 +1,22 @@
 pipeline {
     agent any
-
+    environment {
+        WORKSPACE = (pwd)+"${env.BUILD_NUMBER}"
+    }
     stages {
-
+        stage ('Preparing workspace for build') {
+            steps {
+                echo "build ${env.BUILD_NUMBER}"
+                bat "mkdir ${env.BUILD_NUMBER}"
+                //env.WORKSPACE = (pwd)+${env.BUILD_NUMBER}
+                //bat "cd ${env.BUILD_NUMBER}"
+                }
+            }
         stage('Run tests using docker') {
             parallel {
                 stage ('UI tests on the chrome in the linux container') {
                     steps {
-                        checkout([$class: 'GitSCM', branches: [[name: 'master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/jujga/TestTaskEvo']]])
+                        //checkout([$class: 'GitSCM', branches: [[name: 'master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/jujga/TestTaskEvo']]])
                         //run linux with chrome server. change this comment
                         // alternative run: docker-compose -f pipeline/containers/pseudo_compose/docker-compose.yml up --abort-on-container-exit --exit-code-from py_runner
                         bat 'docker-compose -f pipeline/containers/pseudo_compose/docker-compose.yml run --rm py_runner'
