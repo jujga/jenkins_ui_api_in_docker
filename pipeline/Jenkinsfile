@@ -1,17 +1,6 @@
 pipeline {
     agent any
-    environment {
-        WORKSPACE = "${env.WORKSPACE}"+"${env.BUILD_NUMBER}"
-    }
     stages {
-        stage ('Preparing workspace for build') {
-            steps {
-                echo "build ${env.BUILD_NUMBER}"
-                bat "mkdir ${env.BUILD_NUMBER}"
-                //env.WORKSPACE = (pwd)+${env.BUILD_NUMBER}
-                //bat "cd ${env.BUILD_NUMBER}"
-                }
-            }
         stage('Run tests using docker') {
             parallel {
                 stage ('UI tests on the chrome in the linux container') {
