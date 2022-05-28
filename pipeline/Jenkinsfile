@@ -9,7 +9,7 @@ pipeline {
 
                         //run linux with chrome server. change this comment
                         // alternative run: docker-compose -f pipeline/containers/pseudo_compose/docker-compose.yml up --abort-on-container-exit --exit-code-from py_runner
-                        sh 'docker-compose -f pipeline/containers/pseudo_compose/docker-compose.yml run --rm py_runner'
+                        //sh 'docker-compose -f pipeline/containers/pseudo_compose/docker-compose.yml run --rm py_runner'
                         }
                         }
                     }
