@@ -6,10 +6,11 @@ pipeline {
                 stage ('UI tests on the chrome in the linux container') {
                     steps {
                         script {
-                        echo 'something pass'
-                        //run linux with chrome server. change this comment
+                        // install docker-compose into the jenkins container
+                        sh 'curl -SL https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose'
+                        sh 'chmod +x /usr/local/bin/docker-compose'
                         // alternative run: docker-compose -f pipeline/containers/pseudo_compose/docker-compose.yml up --abort-on-container-exit --exit-code-from py_runner
-                        //sh 'docker-compose -f pipeline/containers/pseudo_compose/docker-compose.yml run --rm py_runner'
+                        sh 'docker-compose -f pipeline/containers/pseudo_compose/docker-compose.yml run --rm py_runner'
                         }
                         }
                     }
@@ -18,7 +19,9 @@ pipeline {
                         script {
 
                         sh 'docker build -f ./pipeline/containers/python_api/Dockerfile -t pytest_runner .'
-                        sh 'docker run --rm --mount type=bind,src=' + (pwd) + ',target=/tests_project pytest_runner'
+
+                        //sh 'docker run --rm --mount type=bind,src=' + (pwd) + ',target=/tests_project pytest_runner'
+                        sh "docker run --rm -v common-volume:/tests_project pytest_runner"
                         }
 
                         }
