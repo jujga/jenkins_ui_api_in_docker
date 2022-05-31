@@ -10,17 +10,10 @@ services:
     volumes:
       - common-volume:/tests_project/
 
-
-    #command: python -m pytest -m ui tests/ui_suite --alluredir=test_results/ -s /tests_project --start_from_jenkins=True
-
-
-
   linux_chrome:
     image: selenium/standalone-chrome:3.141.59-20210607
-    #100.0-chromedriver-100.0-20220405
-    #mem_reservation: 2g
+
     shm_size: '2gb'
-    # build: ./linux_chrome
     ports:
            - 4444:4444
 volumes:

@@ -42,7 +42,7 @@ pipeline {
                                 results: [[path: 'test_results']]
                         ])
                     }
-            //bat 'docker-compose -f pipeline/containers/pseudo_compose/docker-compose.yml down'
+            sh 'docker-compose -f pipeline/containers/pseudo_compose/docker-compose.yml down'
             }
         }
 }
